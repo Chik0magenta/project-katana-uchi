@@ -1,0 +1,5 @@
+# Godot 4 캐시·임포트 결과 (에디터를 열면 다시 생성됨)
+.godot/
+*.translation
+export_presets.cfg
+/build/

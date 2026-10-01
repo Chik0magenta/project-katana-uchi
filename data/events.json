@@ -1,0 +1,165 @@
+{
+  "_comment": "v0.1 이벤트 묶음. context: move(이동한 날) / camp(노숙한 날). terrains 생략 시 모든 지형. unique는 한 번만 발생하고 완료가 기록된다.",
+  "events": [
+    {
+      "id": "nothing",
+      "context": "move",
+      "weight": 34,
+      "title": "아무 일 없음",
+      "text_by_terrain": {
+        "plains": "바람이 보리밭을 쓸고 지나간다. 별일 없는 하루였다.",
+        "forest": "나뭇잎 사이로 빛이 떨어진다. 조용히 숲길을 걸었다.",
+        "river": "강물 소리만 들리는 하루. 발밑의 자갈이 미끄럽다.",
+        "mountain": "숨이 차는 오르막이 이어졌다. 사람 그림자는 없었다."
+      },
+      "choices": [ { "label": "상태를 살핀다", "effects": {}, "result": "오늘은 아무 일도 없었다. 남은 거리와 상태를 보고 다음 행동을 정하자." } ]
+    },
+    {
+      "id": "charcoal_sack",
+      "context": "move",
+      "weight": 10,
+      "terrains": ["plains", "forest"],
+      "title": "버려진 숯 자루",
+      "text": "길가 나무 밑에 반쯤 찬 숯 자루가 떨어져 있다. 짐은 무거워지겠지만 공방에서 쓸 수 있다.",
+      "choices": [
+        { "label": "주워 간다 (숯 +1, 피로 +1)", "effects": { "add": [ { "kind": "charcoal", "type": "normal", "count": 1 } ], "fatigue": 1 }, "result": "숯 자루를 짊어졌다. 어깨가 조금 무겁다." },
+        { "label": "지나친다", "effects": {}, "result": "짐을 늘리지 않기로 했다." }
+      ]
+    },
+    {
+      "id": "road_sand",
+      "context": "move",
+      "weight": 12,
+      "terrains": ["river", "forest"],
+      "title": "검게 반짝이는 모래",
+      "text": "개울가 모래 속에 검은 알갱이가 섞여 반짝인다. 사철이다. 양은 적고 성질도 고르지 않아 보인다.",
+      "choices": [
+        { "label": "한 줌 담는다 (길가 사철 +1, 피로 +1)", "effects": { "add": [ { "kind": "ore", "type": "road_sand", "count": 1 } ], "fatigue": 1 }, "result": "자루에 길가 사철을 담았다." },
+        { "label": "제대로 된 사철터까지 참는다", "effects": {}, "result": "모래를 털고 일어섰다." }
+      ]
+    },
+    {
+      "id": "traveler",
+      "context": "move",
+      "weight": 10,
+      "portrait": "traveler",
+      "title": "행인과 만남",
+      "text": "삿갓을 쓴 행인이 같은 방향으로 걷고 있다. 말을 걸어 볼까?",
+      "choices": [
+        { "label": "이야기를 나눈다", "effects": { "info": true }, "result": "" },
+        { "label": "인사만 하고 지나간다", "effects": {}, "result": "가볍게 고개를 숙이고 앞서 걸었다." }
+      ]
+    },
+    {
+      "id": "merchant",
+      "context": "move",
+      "weight": 8,
+      "portrait": "merchant",
+      "title": "떠돌이 상인",
+      "text": "짐을 가득 진 상인이 거래를 청한다. \"숯이든 먹을 것이든, 필요한 걸 바꿔 드리지.\"",
+      "choices": [
+        { "label": "숯 1을 식량 2와 바꾼다", "requires": { "charcoal": 1 }, "effects": { "lose_charcoal": 1, "food": 2 }, "result": "숯을 내주고 말린 쌀을 받았다." },
+        { "label": "식량 1을 주고 숯 1을 산다", "requires": { "food": 2 }, "effects": { "food": -1, "add": [ { "kind": "charcoal", "type": "normal", "count": 1 } ] }, "result": "보통 숯 한 덩이를 샀다." },
+        { "label": "그냥 지나간다", "effects": {}, "result": "상인은 아쉬운 얼굴로 손을 흔들었다." }
+      ]
+    },
+    {
+      "id": "rain",
+      "context": "move",
+      "weight": 9,
+      "scene_fx": "rain",
+      "title": "갑작스러운 비",
+      "text": "하늘이 어두워지더니 굵은 빗줄기가 쏟아진다.",
+      "choices": [
+        { "label": "비를 맞으며 걷는다 (피로 +2)", "effects": { "fatigue": 2 }, "result": "흠뻑 젖은 채 걸었다. 몸이 무겁다." },
+        { "label": "나무 아래서 그치길 기다린다 (식량 -1)", "effects": { "food": -1 }, "result": "기다리는 동안 주먹밥 하나를 먹었다. 해 지기 전에 비가 그쳤다." }
+      ]
+    },
+    {
+      "id": "rough_road",
+      "context": "move",
+      "weight": 12,
+      "terrains": ["mountain"],
+      "title": "무너진 산길",
+      "text": "낙석으로 길이 반쯤 막혀 있다. 바위를 타고 넘을 수도, 멀리 돌아갈 수도 있다.",
+      "choices": [
+        { "label": "바위를 타고 넘는다 (피로 +2)", "effects": { "fatigue": 2 }, "result": "손발이 긁혔지만 넘어왔다." },
+        { "label": "비탈을 돌아간다 (식량 -1, 피로 +1)", "effects": { "food": -1, "fatigue": 1 }, "result": "한참을 돌아서 길에 다시 올랐다." }
+      ]
+    },
+    {
+      "id": "bandit",
+      "context": "move",
+      "weight": 7,
+      "terrains": ["forest", "mountain", "river"],
+      "portrait": "bandit",
+      "title": "산적",
+      "text": "칼을 찬 사내가 길을 막는다. \"짐을 두고 가라.\"",
+      "choices": [
+        { "label": "벤케이가 앞을 막아선다", "requires": { "companion": "benkei" }, "effects": {}, "result": "벤케이가 한 걸음 나서자 사내는 얼굴이 하얗게 질려 달아났다." },
+        { "label": "식량을 내어준다 (식량 -2)", "requires": { "food": 1 }, "effects": { "food": -2 }, "result": "식량 자루 하나를 던져 주자 사내는 길을 비켰다." },
+        { "label": "숲으로 달아난다 (피로 +3)", "effects": { "fatigue": 3 }, "result": "덤불을 헤치고 한참을 달려 따돌렸다." }
+      ]
+    },
+    {
+      "id": "benkei_first",
+      "context": "move",
+      "weight": 40,
+      "unique": true,
+      "terrains": ["plains", "mountain", "river"],
+      "portrait": "benkei",
+      "title": "다리 위의 거구",
+      "text": "등에 무기를 잔뜩 짊어진 거구의 승병이 외나무다리를 막아선다. \"그 짐에 칼이 있다면 내놓고 가라. 천 자루를 모으는 중이다.\"",
+      "choices": [
+        { "label": "\"칼은 없소. 하지만 나는 도공이오.\"", "effects": { "companion": "benkei" }, "result": "승병은 껄껄 웃었다. \"그럼 네가 만든 칼을 직접 보겠다. 그때까지 길을 지켜 주마.\" 벤케이가 동행하게 되었다." },
+        { "label": "다른 길을 찾아 돌아간다 (피로 +2)", "effects": { "fatigue": 2 }, "result": "개울을 건너 멀리 돌아갔다. 등 뒤에서 웃음소리가 들렸다." }
+      ]
+    },
+    {
+      "id": "camp_quiet",
+      "context": "camp",
+      "weight": 50,
+      "title": "조용한 야영",
+      "text": "모닥불을 피우고 몸을 눕혔다. 장작 타는 소리만 들린다.",
+      "choices": [ { "label": "푹 잔다", "effects": {}, "result": "아침이 밝았다. 몸이 한결 가볍다." } ]
+    },
+    {
+      "id": "camp_stars",
+      "context": "camp",
+      "weight": 14,
+      "title": "별이 많은 밤",
+      "text": "구름 한 점 없는 밤하늘. 불빛에 손을 녹이며 칼 생각을 한다.",
+      "choices": [ { "label": "생각을 정리한다 (피로 -1 추가)", "effects": { "fatigue": -1 }, "result": "머릿속이 맑아졌다." } ]
+    },
+    {
+      "id": "camp_rain",
+      "context": "camp",
+      "weight": 12,
+      "scene_fx": "rain",
+      "title": "밤비",
+      "text": "자정 무렵 비가 내리기 시작했다. 젖은 땅에서 잠을 설친다.",
+      "choices": [ { "label": "버틴다 (피로 +2)", "effects": { "fatigue": 2 }, "result": "제대로 쉬지 못했다." } ]
+    },
+    {
+      "id": "camp_wolves",
+      "context": "camp",
+      "weight": 10,
+      "terrains": ["forest", "mountain"],
+      "title": "늑대 울음",
+      "text": "어둠 속에서 늑대 울음이 가까워진다.",
+      "choices": [
+        { "label": "숯을 넣어 불을 키운다 (숯 -1)", "requires": { "charcoal": 1 }, "effects": { "lose_charcoal": 1 }, "result": "불길이 커지자 울음소리가 멀어졌다." },
+        { "label": "벤케이가 불침번을 선다", "requires": { "companion": "benkei" }, "effects": {}, "result": "벤케이가 나무 몽둥이를 들고 밤새 앉아 있었다." },
+        { "label": "잠을 설치며 버틴다 (피로 +2)", "effects": { "fatigue": 2 }, "result": "밤새 뒤척였다." }
+      ]
+    }
+  ],
+  "infos": [
+    "\"강변 사철은 탄소가 많아 날에 좋다더군. 대신 너무 높으면 담금질 때 갈라진다고.\"",
+    "\"산의 광석은 지저분해. 그래도 무른 쇠가 필요하면 그만한 게 없지.\"",
+    "\"접쇠는 할수록 고르게 되지만, 그만큼 탄소가 빠져. 언제 멈출지가 도공의 눈이야.\"",
+    "\"산화물을 털지 않고 접으면 찌꺼기를 같이 접어 넣는 거라네.\"",
+    "\"담금질은 밝은 진홍빛일 때. 노랗게 달아오르면 늦은 거야.\"",
+    "\"식은 쇠를 두드리면 안에서 금이 간다네. 아깝더라도 다시 달궈.\""
+  ]
+}

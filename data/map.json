@@ -1,0 +1,118 @@
+{
+  "_comment": "v0.1 임시 지도. pos는 지도 그림(220x170 픽셀) 기준 좌표. edges: [노드A, 노드B, 일수, 지형]",
+  "base": "village",
+  "start": "village",
+  "nodes": {
+    "village": {
+      "name": "공방 마을",
+      "kind": "village",
+      "pos": [
+        52,
+        128
+      ],
+      "desc": "도공의 공방이 있는 작은 마을. 보급과 휴식을 하고, 가져온 재료로 칼을 만든다.",
+      "activities": [
+        "workshop",
+        "resupply",
+        "rest"
+      ]
+    },
+    "forest": {
+      "name": "숯가마 숲",
+      "kind": "forest",
+      "pos": [
+        40,
+        52
+      ],
+      "desc": "참나무 숲 속에 숯가마가 연기를 올린다. 질 좋은 숯을 구할 수 있다.",
+      "activities": [
+        "charcoal",
+        "camp_here"
+      ]
+    },
+    "inn": {
+      "name": "갈림길 주막",
+      "kind": "inn",
+      "pos": [
+        112,
+        116
+      ],
+      "desc": "세 갈래 길이 만나는 주막. 묵어 가며 식량을 얻고 소문을 들을 수 있다.",
+      "activities": [
+        "resupply_inn",
+        "rest",
+        "rumor"
+      ]
+    },
+    "river": {
+      "name": "강변 사철터",
+      "kind": "river",
+      "pos": [
+        128,
+        36
+      ],
+      "desc": "물살이 검은 모래를 쌓아 두는 강변. 사철을 일어 모을 수 있다.",
+      "activities": [
+        "gather_satetsu",
+        "camp_here"
+      ]
+    },
+    "mountain": {
+      "name": "철광 산지",
+      "kind": "mountain",
+      "pos": [
+        186,
+        84
+      ],
+      "desc": "붉은 돌이 드러난 험한 산. 철광석을 캘 수 있지만 길이 멀다.",
+      "activities": [
+        "mine_ore",
+        "camp_here"
+      ]
+    }
+  },
+  "edges": [
+    [
+      "village",
+      "forest",
+      1,
+      "forest"
+    ],
+    [
+      "village",
+      "inn",
+      1,
+      "plains"
+    ],
+    [
+      "forest",
+      "river",
+      2,
+      "forest"
+    ],
+    [
+      "inn",
+      "river",
+      2,
+      "river"
+    ],
+    [
+      "inn",
+      "mountain",
+      3,
+      "mountain"
+    ],
+    [
+      "river",
+      "mountain",
+      2,
+      "mountain"
+    ]
+  ],
+  "terrain_names": {
+    "plains": "들길",
+    "forest": "숲길",
+    "river": "강변길",
+    "mountain": "산길"
+  }
+}

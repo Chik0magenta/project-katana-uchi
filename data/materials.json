@@ -1,0 +1,132 @@
+{
+  "_comment": "원료 프리셋. carbon은 %, uniformity/impurity는 0~100 추상값. 제철 시 범위 안에서 정해진다.",
+  "ores": {
+    "satetsu": {
+      "name": "강변 사철",
+      "steel_name": "사철 강괴",
+      "carbon": [
+        0.62,
+        0.92
+      ],
+      "uniformity": [
+        36,
+        50
+      ],
+      "impurity": [
+        14,
+        24
+      ],
+      "note": "탄소가 높고 깨끗한 편. 날(피철)에 어울리기 쉽다."
+    },
+    "mountain_ore": {
+      "name": "산 철광석",
+      "steel_name": "광석 강괴",
+      "carbon": [
+        0.14,
+        0.34
+      ],
+      "uniformity": [
+        26,
+        40
+      ],
+      "impurity": [
+        34,
+        48
+      ],
+      "note": "탄소가 낮고 불순물이 많다. 속심(심철)이라면 쓸 만하다."
+    },
+    "road_sand": {
+      "name": "길가 사철",
+      "steel_name": "길가 사철 강괴",
+      "carbon": [
+        0.45,
+        0.75
+      ],
+      "uniformity": [
+        24,
+        38
+      ],
+      "impurity": [
+        24,
+        36
+      ],
+      "note": "길에서 주운 적은 양의 사철. 성질이 들쭉날쭉하다."
+    }
+  },
+  "scrap": {
+    "name": "창고 고철 강괴",
+    "carbon": [
+      0.3,
+      0.5
+    ],
+    "uniformity": [
+      18,
+      28
+    ],
+    "impurity": [
+      44,
+      56
+    ],
+    "note": "마을 창고의 낡은 고철. 재료가 떨어졌을 때를 위한 대비용."
+  },
+  "charcoal": {
+    "good": {
+      "name": "숯가마 숲 숯",
+      "carbon_bonus": 0.05,
+      "impurity_bonus": -5
+    },
+    "normal": {
+      "name": "보통 숯",
+      "carbon_bonus": 0.0,
+      "impurity_bonus": 0
+    }
+  },
+  "levels": {
+    "carbon": [
+      [
+        0.45,
+        "낮음"
+      ],
+      [
+        0.65,
+        "보통"
+      ],
+      [
+        0.9,
+        "높음"
+      ],
+      [
+        99,
+        "매우 높음"
+      ]
+    ],
+    "uniformity": [
+      [
+        40,
+        "낮음"
+      ],
+      [
+        65,
+        "보통"
+      ],
+      [
+        101,
+        "높음"
+      ]
+    ],
+    "impurity": [
+      [
+        20,
+        "낮음"
+      ],
+      [
+        38,
+        "보통"
+      ],
+      [
+        101,
+        "높음"
+      ]
+    ]
+  }
+}
