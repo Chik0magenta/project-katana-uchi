@@ -1,0 +1,19 @@
+{
+  "name": "katana-uchi-threejs-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "KATANA-UCHI v0.1 three.js 프로토타입 (Godot 재구현 기준)",
+  "scripts": {
+    "dev": "node build.mjs --serve",
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "playtest": "node tools/playtest.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}
