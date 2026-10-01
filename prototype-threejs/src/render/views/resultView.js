@@ -19,7 +19,7 @@ export class ResultView {
     const warp = r.soundness.label === '휨';
     const hard = r.hardening.value / 100;
     drawBladeShape(pc, progress, {
-      x0: 4, y0: 9, len: 250, thickScale: 1.6, base: P.steel, edge: P.steelH, spine: P.steelD, curve: warp ? 7 : 3,
+      x0: 4, y0: 5, len: 250, thickScale: 1.6, base: P.steel, edge: P.steelH, spine: P.steelD, curve: warp ? 7 : 3,
       hamon: hard > 0.3 ? { color: r.hardening.localUneven ? P.stoneL : P.mist, wave: r.hardening.localUneven ? 2.5 : 1.2 } : null,
     });
     // 결함 그리기

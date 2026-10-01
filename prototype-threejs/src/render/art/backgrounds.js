@@ -446,7 +446,8 @@ export function drawBladeShape(pc, progress, opts = {}) {
     const finished = (5 + 3 * u) * thickScale;
     const thick = Math.max(2, Math.round(maxT + (finished - maxT) * t) - (p > 1.15 ? Math.round(2 * thickScale) : 0));
     const bend = Math.round(Math.sin(u * Math.PI) * curve * t);
-    const top = y0 + Math.round(((maxT - thick) / 2) * (1 - t)) - bend;
+    // 일본도처럼 가운데가 아래로 처지는 휨(날 쪽이 볼록): 칼끝과 자루 쪽이 위로 올라간다
+    const top = y0 + Math.round(((maxT - thick) / 2) * (1 - t)) + bend;
     return { i, t, thick, top };
   };
   for (let gx = x0; gx < x0 + len; gx++) {
@@ -470,13 +471,20 @@ export function drawBladeShape(pc, progress, opts = {}) {
       pc.px(gx, yBot - 1, P.white);
     }
   }
-  // 자루(나카고)와 하바키
+  // 자루(나카고): 하바키 없이 도신의 휨을 이어 위로 올라가며 끝으로 갈수록 가늘어진다
   const g = geom(0.999);
-  const ty = g.top + Math.max(1, Math.round(g.thick * 0.2));
-  const th = Math.max(3, Math.round(g.thick * 0.6));
-  pc.rect(x0 + len + 2, ty, Math.round(24 * thickScale), th, P.steelD);
-  pc.hline(x0 + len + 2, ty, Math.round(24 * thickScale), P.steel);
-  pc.rect(x0 + len - 1, g.top - 1, 3, g.thick + 2, P.straw);
+  const tangLen = Math.round(28 * thickScale);
+  const slope = (Math.PI * curve * g.t) / len;   // u=1에서 휨 곡선의 기울기(px/px)
+  const th0 = Math.max(3, Math.round(g.thick * 0.6));
+  const holeK = Math.round(tangLen * 0.55);
+  for (let k = 0; k < tangLen; k++) {
+    const gx = x0 + len + k;
+    const tt = g.top - Math.round(k * slope);
+    const th = Math.max(2, Math.round(th0 * (1 - 0.35 * (k / tangLen))));
+    pc.vline(gx, tt, th, P.steelD);
+    pc.px(gx, tt + th - 1, P.ink);
+    if (k === holeK || k === holeK + 1) pc.px(gx, tt + Math.floor(th / 2), P.ink);
+  }
   if (highlight >= 0) {
     const sx = x0 + Math.round(highlight * segLen);
     pc.rect(sx, Math.max(0, y0 - 3), Math.ceil(segLen) - 1, 1, P.yellow);
