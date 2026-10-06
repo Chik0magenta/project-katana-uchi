@@ -2,7 +2,7 @@
 // Godot 이식: data/balance.json
 
 export const BALANCE = {
-  start: { food: 8, fatigue: 0, charcoal: 1, day: 1 },
+  start: { food: 8, fatigue: 0, charcoal: 1, day: 1, money: 40 },
   food: { max: 10 },
   fatigue: { max: 10, tired: 7 },
 
@@ -70,5 +70,33 @@ export const BALANCE = {
     startTemp: 420, furnaceTemp: 1010, heatRate: 0.10, coolRate: 0.25,
     evenRate: 0.07, evenStart: 0.35, evenMinTemp: 650,
     ideal: [760, 840],
+  },
+
+  // ── v0.2 추가 ─────────────────────────────
+  // 카타나 수치 (core/weapons.js). 0~100 척도, 무게는 kg.
+  weapon: {
+    bladeWeight: 0.95,       // 기본 도신 무게
+    overThin: 0.04,          // 과타격 구간 하나당 가벼워짐
+    roughThick: 0.003,       // 형상 품질 70 미만 1점당 무거워짐 (덜 편 도신)
+    powerSharp: 0.8,         // 무기 성능 = 날카로움 × 0.8
+    powerWeight: 30,         //          + (무게 − 0.8kg) × 30
+    weightBase: 0.8,
+    bentFactor: 0.6,         // 휜 칼은 성능 × 0.6
+    wearBase: 7,             // 전투 한 번에 무뎌지는 양 = 7 × (1 − 날 유지력/120)
+    wearRetention: 120,
+    chipBase: 12, chipPerExcess: 0.4,   // 충격이 내구력을 넘으면 이가 빠진다
+    bendExcess: 25,                     // 25 이상 넘으면 휜다
+    polishCost: 8, chipFixCost: 10, bendFixCost: 20,
+  },
+
+  // 전투 (core/battle.js)
+  combat: {
+    skillWeight: 0.6,        // 유닛 전투력 = 기본 실력 × 0.6 + 무기 성능 × 0.4
+    weaponWeight: 0.4,
+    damageRate: 0.35,        // 한 번 공격 피해 = 전투력 × 0.35 × (1 ± 0.3)
+    damageJitter: 0.3,
+    maxRounds: 8,            // 8합 안에 끝나지 않으면 남은 체력 비율로 판정
+    fightFatigue: 1,         // 싸우면 피로 +1
+    downFatigue: 2,          // 도공이 쓰러지면 피로 +2 더
   },
 };

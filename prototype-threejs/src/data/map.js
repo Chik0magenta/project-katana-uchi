@@ -25,6 +25,10 @@ export const MAP = {
       id: 'mountain', name: '철광 산지', terrain: 'mountain', x: 176, y: 40,
       desc: '바위산의 노천 광맥. 탄소가 적은 철광석을 캘 수 있다.',
     },
+    castle: {
+      id: 'castle', name: '성하 마을', terrain: 'town', x: 190, y: 150,
+      desc: '성 아래 상가 마을. 코시라에를 맞춰 도신을 카타나로 만들고, 칼을 비싸게 판다.',
+    },
   },
   // terrain: 이동 중 배경과 사건 후보를 정한다.
   edges: [
@@ -34,6 +38,8 @@ export const MAP = {
     { id: 'i-r', a: 'inn', b: 'river', days: 2, terrain: 'river', name: '강둑 길' },
     { id: 'i-m', a: 'inn', b: 'mountain', days: 3, terrain: 'mountain', name: '고갯길' },
     { id: 'r-m', a: 'river', b: 'mountain', days: 2, terrain: 'mountain', name: '골짜기 길' },
+    { id: 'r-c', a: 'river', b: 'castle', days: 2, terrain: 'river', name: '나루 길' },
+    { id: 'i-c', a: 'inn', b: 'castle', days: 3, terrain: 'plain', name: '성하 큰길' },
   ],
 };
 

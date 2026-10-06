@@ -49,7 +49,7 @@ export function mountMap(app) {
           h('span', { class: 'k', text: '식량 예상' }), h('span', { text: `편도 ${p.oneWayFood} · 왕복 ${p.roundFood} (지금 ${s.food})` }),
           h('span', { class: 'k', text: '피로 예상' }), h('span', { text: `편도 +${p.fatigueOneWay} (지금 ${s.fatigue})` }),
         ),
-        p.warnings.map((w) => h('div', { class: 'warn small', text: `⚠ ${w}` })),
+        ...p.warnings.map((w) => h('div', { class: 'warn small', text: `⚠ ${w}` })),
         button(`출발하기 — 첫날 이동`, () => go(), { cls: 'primary center', testid: 'depart' }),
       );
     } else {

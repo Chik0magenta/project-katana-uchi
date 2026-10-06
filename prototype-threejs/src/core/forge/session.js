@@ -156,6 +156,8 @@ export class ForgeSession {
       skin: this.skin, core: this.core, shaping: this.shapingSummary,
     };
     st.results.push(record);
+    // 완성한 도신은 소지품에 들어간다 (코시라에를 맞추거나 팔 수 있다)
+    st.blades.push({ uid: st.nextUid++, no: record.no });
     addLog(st, `도신 완성: ${this.result.grade}`);
     this.stage = 'done';
     return { ok: true, record };

@@ -16,11 +16,11 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(url);
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/q_title.png` });
-const shots = ['dev-map', 'dev-travel', 'dev-river', 'dev-mountain', 'dev-forest', 'dev-inn', 'dev-workshop', 'dev-assign', 'dev-shape', 'dev-quench', 'dev-result'];
+const shots = ['dev-map', 'dev-travel', 'dev-river', 'dev-mountain', 'dev-forest', 'dev-inn', 'dev-workshop', 'dev-assign', 'dev-shape', 'dev-quench', 'dev-result', 'dev-castle', 'dev-inventory', 'dev-peddler', 'dev-bandit'];
 for (const id of shots) {
   await page.evaluate(() => window.__katana.go('dev'));
   await page.click(`[data-testid="${id}"]`);
-  await page.waitForTimeout(id === 'dev-travel' ? 2200 : id === 'dev-assign' ? 300 : 900);
+  await page.waitForTimeout(['dev-travel', 'dev-peddler', 'dev-bandit'].includes(id) ? 2200 : id === 'dev-assign' ? 300 : 900);
   await page.screenshot({ path: `${out}/q_${id}.png` });
 }
 console.log(errors.length ? `ERRORS:\n${errors.join('\n')}` : 'no console errors');

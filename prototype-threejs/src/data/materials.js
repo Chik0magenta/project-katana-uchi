@@ -18,6 +18,11 @@ export const MATERIALS = {
     carbon: [0.40, 0.78], uniformity: [22, 36], impurity: [22, 34],
     note: '길에서 주운 사철. 성질이 들쭉날쭉하다.',
   },
+  tamahagane: {
+    id: 'tamahagane', name: '옥강 조각', short: '옥강',
+    carbon: [0.70, 0.92], uniformity: [55, 68], impurity: [6, 12],
+    note: '큰 제철소에서 나온 질 좋은 강. 성하 마을에서 비싸게 판다.',
+  },
   scrap: {
     id: 'scrap', name: '창고 고철', short: '고철',
     carbon: [0.32, 0.48], uniformity: [18, 28], impurity: [42, 54],

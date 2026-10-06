@@ -74,7 +74,7 @@ body {
 .edge-label { position: absolute; transform: translate(-50%, -50%); font-size: 13px; padding: 0 5px; background: rgba(240,230,208,.92); color: var(--woodD); font-weight: 700; pointer-events: none; }
 .map-panel { left: 868px; top: 52px; width: 404px; bottom: 8px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
 .dest-list { display: flex; flex-direction: column; gap: 5px; }
-.btn.dest { min-height: 38px; padding: 6px 12px; font-size: 16px; }
+.btn.dest { min-height: 34px; padding: 4px 12px; font-size: 16px; }
 .btn.small-btn { min-height: 32px; padding: 4px 10px; font-size: 14px; }
 .info-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 16px; }
 .info-grid .k { color: var(--stoneL); }
@@ -97,11 +97,20 @@ body {
 .event-text .result { margin-top: 6px; color: var(--sky); }
 .event-text .day { font-size: 15px; color: var(--stoneL); }
 .actions { width: 440px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+.actions > .btn { flex-shrink: 0; min-height: 38px; padding: 6px 12px; }
+.actions.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; }
+.actions.grid2 > .muted, .actions.grid2 > .wide { grid-column: span 2; }
+.btn.fight { flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; }
+/* 고를 수 없는 선택지는 이유를 같은 줄 오른쪽에 둔다 (세로 공간 절약) */
+.actions > .btn:disabled:has(.btn-why) { flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; }
+.btn.inline { align-self: flex-start; display: inline-flex; margin-top: 6px; }
 
 /* ── 장소 ── */
 .loc-panel { left: 8px; right: 8px; top: 460px; bottom: 8px; display: flex; gap: 16px; }
 .loc-panel .left { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.loc-panel .right { width: 520px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: start; }
+.loc-panel .right { width: 520px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: max-content; gap: 6px; align-content: start; overflow: auto; }
+.loc-panel .right .btn { padding: 6px 12px; }
+.btn.primary .muted { color: #ffe2b8; }
 .loc-name { position: absolute; left: 12px; top: 54px; font-size: 24px; font-weight: 800; padding: 2px 14px; background: rgba(20,16,26,.85); border: 2px solid var(--woodL); color: var(--yellow); }
 .msg { color: var(--sky); min-height: 24px; }
 .loc-panel .right .wide { grid-column: span 2; }
@@ -158,7 +167,74 @@ body {
 .title-box .sub { font-size: 19px; color: var(--paperD); margin-bottom: 26px; }
 .title-box .btn { width: 300px; margin-bottom: 10px; font-size: 19px; }
 .title-help { position: absolute; right: 40px; top: 120px; width: 470px; font-size: 16px; }
-.dev-panel { left: 240px; top: 80px; width: 800px; bottom: 60px; display: flex; flex-direction: column; gap: 10px; }
-.dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dev-panel { left: 120px; top: 70px; width: 1040px; bottom: 40px; display: flex; flex-direction: column; gap: 10px; }
+.dev-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.dev-grid .btn { font-size: 15px; }
 .dev-badge { position: absolute; right: 12px; bottom: 10px; font-size: 13px; background: #602020; padding: 2px 8px; pointer-events: none; }
 .devnum { color: #9fd0ff; font-size: 13px; }
+
+/* ── v0.2: 소지품·상점·코시라에·연마소·전투 ── */
+img.pix { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+.hud .btn.inv-btn { background: #4a3a20; border-color: var(--yellow); }
+.row.wrap { flex-wrap: wrap; gap: 6px; }
+
+.modal-back { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; background: rgba(8, 6, 12, 0.6); z-index: 30; }
+.modal { left: 16px; right: 16px; top: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+.modal-head { display: flex; align-items: center; gap: 14px; }
+.modal-head h2 { margin: 0; }
+.modal-sub { color: var(--paperD); font-size: 17px; }
+.modal-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.panel section h3 { margin: 0 0 6px; color: var(--yellow); font-size: 18px; }
+
+.inv-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px 400px 1fr; gap: 14px; }
+.inv-col { display: flex; flex-direction: column; min-height: 0; }
+.inv-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0; }
+.inv-item { border: 1px solid var(--stone); background: var(--deep); padding: 6px 10px; display: flex; flex-direction: column; gap: 3px; }
+.inv-money { font-size: 22px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; }
+.stat-grid.wide { grid-template-columns: 1fr; gap: 6px; }
+.stat-row { display: flex; align-items: center; gap: 8px; font-size: 15px; white-space: nowrap; }
+.stat-row .k { color: var(--stoneL); min-width: 76px; }
+.bar.stat .bar-fill { background: var(--sky); }
+.power { font-weight: 800; color: var(--yellow); white-space: nowrap; }
+.cond.ok { color: var(--green); }
+.cond.chipped { color: #ffb070; }
+.cond.bent { color: #ff8a7a; }
+.party { display: flex; flex-direction: column; gap: 4px; }
+.party-row { display: flex; gap: 10px; align-items: baseline; }
+.party-row .small { flex: 1; }
+
+.shop-msg { color: var(--sky); min-height: 24px; }
+.shop-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.shop-col { display: flex; flex-direction: column; min-height: 0; gap: 4px; }
+.shop-list { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; min-height: 0; }
+.shop-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--stone); background: var(--deep); padding: 4px 10px; }
+.shop-row .price { font-weight: 800; color: var(--yellow); min-width: 52px; text-align: right; }
+.shop-row .btn { min-width: 64px; }
+
+.kosh-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.kosh-col { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.kosh-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0; max-height: 300px; }
+.kosh-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pick { border: 2px solid var(--stone); background: var(--deep); padding: 6px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
+.pick:hover { border-color: var(--paper); }
+.pick.picked { border-color: var(--yellow); background: #3a3020; }
+.why { display: flex; flex-direction: column; }
+.kosh-done { display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
+
+.polish-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; min-height: 0; align-content: start; }
+
+.battle-panel { left: 8px; right: 8px; top: 452px; bottom: 8px; display: flex; gap: 16px; }
+.battle-log { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; font-size: 16px; overflow: hidden; }
+.battle-log .ln.ally { color: #bfe8a0; }
+.battle-log .ln.enemy { color: #ffc0a0; }
+.battle-side { width: 520px; display: flex; flex-direction: column; gap: 4px; }
+.battle-result { font-size: 26px; font-weight: 900; }
+.unit-tag { position: absolute; width: 104px; text-align: center; font-size: 13px; line-height: 1.2; }
+.unit-tag .nm { background: rgba(20,16,26,.8); padding: 0 3px; white-space: nowrap; }
+.unit-tag .bar { width: 100%; height: 7px; display: block; }
+.bar.hp .bar-fill { background: var(--green); }
+.bar.hp.enemy .bar-fill { background: var(--redL); }
+.bar.hp.down .bar-fill { background: var(--stone); }
+.dmg { position: absolute; transform: translateX(-50%); font-size: 22px; font-weight: 900; color: #fff8e8; text-shadow: 0 2px 0 #000; animation: dmg-up .9s ease-out forwards; }
+@keyframes dmg-up { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -36px; } }

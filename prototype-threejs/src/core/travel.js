@@ -16,6 +16,8 @@ import { EVENTS } from '../data/events.js';
 import {
   withRng, eat, clampStats, addLog, snapshotStats, diffStats, makeRaw, hearRumor,
 } from './state.js';
+import { fight } from './battle.js';
+import { makePeddler } from './economy.js';
 
 export function neighbors(nodeId) {
   return MAP.edges
@@ -140,7 +142,7 @@ function buildEventInstance(state, ev) {
   const text = ev.textByTerrain ? ev.textByTerrain[terrain] : ev.text;
   return {
     id: ev.id, title: ev.title, text, art: ev.art, weather: ev.weather || null,
-    choices: ev.choices.map((c, i) => ({ index: i, label: c.label, ...checkRequires(state, c.requires) })),
+    choices: ev.choices.map((c, i) => ({ index: i, label: c.label, battle: c.effects?.battle || null, ...checkRequires(state, c.requires) })),
     resolved: false, resultText: null, changes: [],
   };
 }
@@ -151,6 +153,7 @@ export function checkRequires(state, req) {
   if (req.food && state.food < req.food) return { enabled: false, why: `식량 ${req.food} 필요` };
   if (req.charcoal && state.charcoal < req.charcoal) return { enabled: false, why: `숯 ${req.charcoal} 필요` };
   if (req.raw && state.raw.length < req.raw) return { enabled: false, why: `원료 ${req.raw}개 필요` };
+  if (req.money && state.money < req.money) return { enabled: false, why: `돈 ${req.money}문 필요` };
   return { enabled: true, why: null };
 }
 
@@ -167,7 +170,7 @@ export function resolveEvent(state, choiceIndex) {
   clampStats(state);
   j.event.resolved = true;
   j.event.chosen = choiceIndex;
-  j.event.resultText = [choice.result, j.event.rumor].filter(Boolean).join(' ');
+  j.event.resultText = [choice.result, j.event.rumor, j.event.battle?.text, j.event.battle?.wearText].filter(Boolean).join(' ');
   j.event.changes = diffStats(before, snapshotStats(state));
   if (ev.unique) state.flags[ev.id] = true;
   addLog(state, `${ev.title}: ${choice.label}`);
@@ -179,6 +182,7 @@ function applyEffects(state, fx, evInst) {
   if (fx.food) state.food += fx.food;
   if (fx.fatigue) state.fatigue += fx.fatigue;
   if (fx.charcoal) state.charcoal += fx.charcoal;
+  if (fx.money) state.money += fx.money;
   if (fx.addRaw) {
     const where = `${edgeOf(state.journey).name} · ${state.day}일차`;
     state.raw.push(makeRaw(state, fx.addRaw, where));
@@ -187,6 +191,10 @@ function applyEffects(state, fx, evInst) {
   if (fx.companion) state.companions[fx.companion] = true;
   if (fx.flag) state.flags[fx.flag] = true;
   if (fx.hint === 'rumor' && evInst) evInst.rumor = hearRumor(state);
+  // 전투: 결과를 바로 계산해 반영하고, 화면은 기록을 재생한다 (battleShown으로 한 번만)
+  if (fx.battle && evInst) { evInst.battle = fight(state, fx.battle); evInst.battleShown = false; }
+  // 행상인: 그날 하루 거래할 수 있는 재고를 사건에 붙인다
+  if (fx.trade === 'peddler' && evInst) evInst.shop = makePeddler(state);
 }
 
 // 사건 해결 뒤: 탈진 확인 → 도착이면 'arrive', 아니면 행동 선택
@@ -228,6 +236,18 @@ export function collapse(state) {
   arriveAt(state, MAP.base);
   addLog(state, '탈진해 마을로 실려 왔다');
   return { lostRaw: lostItems.map((r) => r.name), lostFood, daysLost: c.daysLost };
+}
+
+// 개발·검증용: 오늘 사건을 지정한 사건으로 바꾼다 (일반 플레이에서는 쓰지 않는다)
+export function forceEvent(state, eventId) {
+  const j = state.journey;
+  const ev = EVENTS.find((e) => e.id === eventId);
+  if (!j || !ev) return { ok: false };
+  j.event = buildEventInstance(state, ev);
+  j.history[j.history.length - 1].eventTitle = ev.title;
+  if (ev.choices.length) j.phase = 'event';
+  else { j.event.resolved = true; j.phase = j.dayInfo.reached ? 'arrive' : 'choose'; }
+  return { ok: true };
 }
 
 export function edgeOf(j) { return MAP.edges.find((e) => e.id === j.edgeId); }

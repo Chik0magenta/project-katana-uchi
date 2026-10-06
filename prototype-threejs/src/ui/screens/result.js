@@ -20,7 +20,7 @@ export function mountResult(app, params) {
 
   app.ui.append(
     h('div', { class: 'res-title passthrough', 'data-testid': 'grade', text: `${r.no}번째 도신 — ${r.grade}` }),
-    h('div', { class: 'res-sub passthrough', text: `종합 ${r.score}점 · ${r.day}일차 완성 (제작에 2일 소요)` }),
+    h('div', { class: 'res-sub passthrough', text: `종합 ${r.score}점 · ${r.day}일차 완성 (제작에 2일 소요) · ${r.soundness.label === '파단' ? '부러진 도신은 소지품에 고철로 남았다' : '소지품에 넣었다 — 성하 마을에서 코시라에를 맞추면 카타나가 된다'}` }),
     h('div', { class: 'panel res-panel' },
       h('div', {},
         h('h2', { text: '도신의 성질' }),

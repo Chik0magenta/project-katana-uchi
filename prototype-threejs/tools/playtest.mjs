@@ -1,5 +1,6 @@
 // 실제 브라우저에서 버튼을 눌러 전체 흐름을 한 바퀴 플레이하고, 주요 화면을 캡처한다.
 // 지도 → 이동 사건 → 재료 확보 → 귀환 → 공방 제작 → 결과 → 재시도
+// v0.2: 상점 → 성하 마을 → 코시라에 → 소지품·장비 → 도장 대련 → 연마 → 행상인 → 산적 전투
 // 각 화면에서 글자 잘림·겹침(넘침)과 콘솔 오류를 검사한다.
 // 사용: npm run build && node tools/playtest.mjs [캡처 폴더]
 import { createRequire } from 'node:module';
@@ -43,9 +44,11 @@ async function checkLayout(name) {
       const clip = ['hidden', 'clip'].includes(style.overflowX) || ['hidden', 'clip'].includes(style.overflowY);
       if (clip && (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2)) out.push(`잘림: <${el.tagName.toLowerCase()} class="${el.className}"> "${txt}" (${el.scrollWidth}x${el.scrollHeight} > ${el.clientWidth}x${el.clientHeight})`);
       if (el.matches('.btn') && el.scrollWidth > el.clientWidth + 2) out.push(`버튼 글자 넘침: "${txt}"`);
+      if (el.matches('.btn') && el.scrollHeight > el.clientHeight + 2) out.push(`버튼 글자 세로 넘침(겹침): "${txt}"`);
       if (el.matches('.hud > *') && r.height > 40) out.push(`상단 막대 줄바꿈: "${txt}"`);
       if (el.matches('.hud') && el.scrollWidth > el.clientWidth + 2) out.push('상단 막대가 넘침');
-      if (['auto', 'scroll'].includes(style.overflowY) && el.scrollHeight > el.clientHeight + 2) out.push(`스크롤 필요: <${el.tagName.toLowerCase()} class="${el.className}"> "${txt}"`);
+      // .scroll-ok: 목록이 길어지면 스크롤하도록 만든 곳 (상점·소지품 목록)
+      if (['auto', 'scroll'].includes(style.overflowY) && !el.matches('.scroll-ok') && el.scrollHeight > el.clientHeight + 2) out.push(`스크롤 필요: <${el.tagName.toLowerCase()} class="${el.className}"> "${txt}"`);
     }
     return out;
   });
@@ -66,10 +69,29 @@ async function settleDay(tag) {
   if (!j) return st;
   if (j.phase === 'event') {
     await shot(`${tag}_event`);
-    const idx = j.event.choices.findIndex((c) => c.enabled);
+    // 승산이 '열세'인 싸움은 피하고, 그 밖에는 고를 수 있는 첫 선택지
+    let idx = -1;
+    for (const [i, c] of j.event.choices.entries()) {
+      if (!c.enabled) continue;
+      const odds = await page.$eval(`[data-testid="odds-${i}"]`, (e) => e.textContent).catch(() => '');
+      if (odds.includes('열세')) continue;
+      idx = i; break;
+    }
+    if (idx < 0) idx = j.event.choices.findIndex((c) => c.enabled);
     await click(`choice-${idx}`);
+    if (await exists('battle-log')) await watchBattle(tag);
   }
   return S();
+}
+
+// 전투 화면: 잠깐 지켜보고 빨리 보기 → 결과 → 계속
+async function watchBattle(tag) {
+  await page.waitForTimeout(1500);
+  await shot(`${tag}_battle`);
+  if (await exists('battle-skip')) { await click('battle-skip'); await page.waitForTimeout(900); }
+  await shot(`${tag}_battle_result`);
+  await click('battle-continue');
+  await page.waitForTimeout(300);
 }
 
 async function travelTo(dest, tag, { testCamp = false, testReverse = false } = {}) {
@@ -259,6 +281,130 @@ assert(await exists('mat-scrap'), '재시도: 재료가 없어도 창고 고철�
 await click('leave-workshop');
 await click('open-map');
 await shot('retry_map');
+await click('back-location');
+
+log('▶ v0.2: 마을 상점');
+st = await S();
+assert(st.blades.length === 1, '완성한 도신이 소지품에 들어갔다');
+await click('act-shop');
+await shot('village_shop');
+let m0 = st.money; const c0 = st.charcoal;
+await click('buy-charcoal');
+st = await S();
+assert(st.money === m0 - 9 && st.charcoal === c0 + 1, `마을 상점: 숯을 사면 돈이 줄고 숯이 는다 (${m0}→${st.money}문)`);
+const hud0 = await page.$eval('[data-testid="hud-money"]', (e) => e.textContent);
+assert(hud0.includes(`${st.money}`), '상점에서 사고팔면 상단 막대의 돈이 바로 바뀐다');
+await click('modal-close');
+
+log('▶ v0.2: 마을 → 찻집 → 성하 마을');
+if (await enabled('act-supply')) await click('act-supply');
+if (await enabled('act-rest')) await click('act-rest');
+st = await travelTo('inn', 'v2_inn');
+if (st.location === 'inn') {
+  if (await enabled('act-onigiri')) await click('act-onigiri');
+  if (await enabled('act-inn_rest')) await click('act-inn_rest');
+  st = await travelTo('castle', 'v2_castle');
+}
+assert(st.location === 'castle', `성하 마을에 도착했다 (${st.location}, ${st.day}일차, 돈 ${st.money}문)`);
+if (st.location === 'castle') {
+  await shot('castle');
+  log('▶ 도검상: 코시라에 값이 모자라면 숯·원료를 판다');
+  await click('act-shop');
+  await shot('castle_shop');
+  for (let i = 0; i < 8 && (await S()).money < 25; i++) {
+    const keys = await page.$$eval('[data-testid^="sell-"]', (els) => els.map((e) => e.dataset.testid));
+    const pick = keys.find((k) => k === 'sell-charcoal') || keys.find((k) => k.startsWith('sell-raw'));
+    if (!pick) break;
+    m0 = (await S()).money;
+    await click(pick);
+    assert((await S()).money > m0, `팔기: ${pick}`);
+  }
+  await click('modal-close');
+
+  log('▶ 코시라에');
+  await click('act-koshirae');
+  await shot('koshirae');
+  const kb = await S();
+  await click('kosh-confirm');
+  await page.waitForTimeout(200);
+  await shot('koshirae_done');
+  st = await S();
+  assert(st.weapons.length === 1 && st.blades.length === 0, '코시라에: 도신이 카타나가 된다');
+  assert(st.day === kb.day + 1 && st.money === kb.money - 25, `코시라에: 25문과 하루를 쓴다 (${kb.money}→${st.money}문)`);
+  const w0 = st.weapons[0];
+  assert(['sharpness', 'retention', 'durability', 'weight'].every((k) => typeof w0[k] === 'number'), `카타나 네 수치: 날카로움 ${w0.sharpness} · 유지력 ${w0.retention} · 내구력 ${w0.durability} · 무게 ${w0.weight}kg`);
+  const hud1 = await page.$eval('[data-testid="hud-money"]', (e) => e.textContent);
+  assert(hud1.includes(`${st.money}`), '코시라에 직후 상단 막대의 돈이 바로 바뀐다');
+  await click('kosh-equip-smith');
+
+  log('▶ 소지품');
+  await click('open-inventory');
+  await shot('inventory');
+  st = await S();
+  assert(st.equip.smith === w0.uid && await exists(`inv-katana-${w0.uid}`), '소지품: 카타나를 도공이 쥐었고 수치가 보인다');
+  const partyText = await page.$eval('[data-testid="party-smith"]', (e) => e.textContent);
+  assert(partyText.includes(w0.name), `일행 전투력에 카타나가 반영된다 (${partyText})`);
+  await click('modal-close');
+
+  log('▶ 도장 대련');
+  await click('act-dojo');
+  await page.waitForTimeout(1500);
+  await shot('dojo_battle');
+  if (await exists('battle-skip')) { await click('battle-skip'); await page.waitForTimeout(900); }
+  await shot('dojo_result');
+  st = await S();
+  assert(st.lastBattle?.encId === 'dojo', `도장 대련: ${st.lastBattle?.win ? '승리' : '패배'} (승산 ${st.lastBattle?.odds})`);
+  assert(st.weapons[0].sharpness < w0.sharpness, `싸우고 나면 카타나가 무뎌진다 (${w0.sharpness}→${st.weapons[0].sharpness})`);
+  await click('battle-continue');
+  await page.waitForTimeout(300);
+  assert(await exists('act-polish'), '대련이 끝나면 성하 마을로 돌아온다');
+
+  log('▶ 연마소');
+  await click('act-polish');
+  await shot('polish');
+  if (await enabled(`polish-sharpen-${w0.uid}`)) {
+    await click(`polish-sharpen-${w0.uid}`);
+    st = await S();
+    assert(st.weapons[0].sharpness === st.weapons[0].sharpMax, '연마소: 날을 다시 세운다');
+  } else log('  (돈이 모자라 연마는 건너뜀)');
+  await click('modal-close');
+}
+
+log('▶ v0.2: 떠돌이 행상인 (개발 메뉴로 사건 고정)');
+await page.evaluate(() => window.__katana.go('dev'));
+await click('dev-peddler');
+await page.waitForTimeout(1800);
+await shot('peddler_event');
+await click('choice-0');
+await click('open-peddler');
+await shot('peddler_shop');
+st = await S();
+const stock = st.journey.event.shop.stock;
+const cheap = stock.find((x) => x.qty > 0 && x.price <= st.money);
+if (cheap) {
+  await click(`buy-${cheap.key}`);
+  assert((await S()).money === st.money - cheap.price, `행상인에게서 ${cheap.name}을(를) ${cheap.price}문에 샀다`);
+}
+await click('modal-close');
+
+log('▶ v0.2: 산적 전투 (벤케이 + 카타나 도공)');
+await page.evaluate(() => window.__katana.go('dev'));
+await click('dev-bandit');
+await page.waitForTimeout(1800);
+await shot('bandit_event');
+const odds = await page.$eval('[data-testid="odds-0"]', (e) => e.textContent);
+assert(/우리 \d+ : 상대 \d+ · 승산/.test(odds), `싸우기 전에 양쪽 전투력과 승산을 보여 준다 (${odds})`);
+await click('choice-0');
+await watchBattle('bandit');
+st = await S();
+assert(st.journey?.event?.battleShown === true && await exists('actions'), '전투를 본 뒤 길 위 화면으로 돌아온다');
+await page.reload();
+await page.waitForTimeout(700);
+if (await exists('continue')) {
+  await click('continue');
+  await page.waitForTimeout(500);
+  assert(!(await exists('battle-log')), '이어하기를 해도 본 전투를 다시 재생하지 않는다');
+}
 
 log('▶ 되돌아가기·귀환 버튼 (새 게임: 마을 → 찻집 → 철광 산지 3일 구간)');
 await page.evaluate(() => window.__katana.newGame(777));

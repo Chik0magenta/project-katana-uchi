@@ -8,6 +8,7 @@ import { MATERIALS } from '../data/materials.js';
 import {
   eat, clampStats, addLog, snapshotStats, diffStats, makeRaw, hearRumor,
 } from './state.js';
+import { fight } from './battle.js';
 
 export function activitiesAt(state) {
   const loc = LOCATIONS[state.location];
@@ -18,6 +19,7 @@ export function activitiesAt(state) {
     let why = null;
     if (a.limit && used >= a.limit) { enabled = false; why = '이번 방문에서는 더 할 수 없습니다'; }
     if (a.gives?.foodFill && state.food >= BALANCE.food.max) { enabled = false; why = '식량이 이미 가득합니다'; }
+    if (a.cost?.money && state.money < a.cost.money) { enabled = false; why = `돈 ${a.cost.money}문 필요`; }
     return { ...a, used, enabled, why };
   });
 }
@@ -35,6 +37,7 @@ export function doActivity(state, id) {
   if (cost.food) starving = eat(state, cost.food).starving;
   const tiredBefore = state.fatigue;
   if (cost.fatigue) state.fatigue += cost.fatigue;
+  if (cost.money) state.money -= cost.money;
 
   const g = act.gives || {};
   let text = '';
@@ -53,11 +56,13 @@ export function doActivity(state, id) {
   if (g.fatigueTo !== undefined) { state.fatigue = g.fatigueTo; text = '푹 쉬었다. 몸이 가볍다.'; }
   if (g.fatigue) { state.fatigue += g.fatigue; text = '모닥불 곁에서 쉬었다.'; }
   if (g.hint === 'rumor') text = hearRumor(state);
+  let battle = null;
+  if (g.battle) { battle = fight(state, g.battle); text = [battle.text, battle.wearText].filter(Boolean).join(' '); }
   if (starving) text += ' 먹을 것이 없어 몹시 허기졌다.';
   clampStats(state);
 
   state.visit.counts[id] = (state.visit.counts[id] || 0) + 1;
   addLog(state, `${node.name}: ${act.label}`);
   const collapsed = state.fatigue >= BALANCE.fatigue.max;
-  return { ok: true, text, changes: diffStats(before, snapshotStats(state)), collapsed };
+  return { ok: true, text, changes: diffStats(before, snapshotStats(state)), collapsed, battle };
 }

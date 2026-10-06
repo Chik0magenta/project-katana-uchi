@@ -8,7 +8,7 @@ export function mountTitle(app) {
   app.ui.append(
     h('div', { class: 'title-box' },
       h('h1', { text: 'KATANA-UCHI' }),
-      h('div', { class: 'sub', text: '刀打ち · v0.1 플레이 시안 (three.js)' }),
+      h('div', { class: 'sub', text: '刀打ち · v0.2 플레이 시안 (three.js)' }),
       button('새로 시작하기', () => app.newGame(), { cls: 'primary', testid: 'new-game' }),
       save ? button(`이어하기 (${save.state.day}일차)`, () => app.continueGame(), { testid: 'continue' }) : null,
       button('개발용 메뉴', () => app.go('dev'), { testid: 'dev-menu' }),
@@ -21,8 +21,9 @@ export function mountTitle(app) {
         h('li', { text: '강변에서 사철, 산에서 철광석, 숲에서 숯을 구합니다.' }),
         h('li', { text: '마을 공방으로 돌아와 강재 두 개를 단련하고, 성형하고, 담금질합니다.' }),
         h('li', { text: '결과의 원인을 보고 다시 만들어 봅니다.' }),
+        h('li', { text: '성하 마을에서 도신에 코시라에를 맞춰 카타나로 만들고, 팔거나 쥐고 싸웁니다.' }),
       ),
-      h('p', { class: 'muted small', text: '마우스로 모든 조작을 할 수 있습니다. F2: 개발용 실제 수치 표시.' }),
+      h('p', { class: 'muted small', text: '마우스로 모든 조작을 할 수 있습니다. I: 소지품 · F2: 개발용 실제 수치 표시.' }),
     ),
   );
 }

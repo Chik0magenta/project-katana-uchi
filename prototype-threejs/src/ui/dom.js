@@ -43,3 +43,37 @@ export function changeChips(changes) {
     return h('span', { class: `chip ${good ? 'good' : 'bad'}`, text: `${c.label} ${c.delta > 0 ? '+' : ''}${c.delta}` });
   }));
 }
+
+// 픽셀 그림(PixelCanvas)을 확대한 <img>로 (소지품·상점 등 DOM 화면에서 쓰는 작은 그림)
+export function pixImg(pc, scale = 2, cls = '') {
+  return h('img', { class: `pix ${cls}`, src: pc.canvas.toDataURL(), width: pc.w * scale, height: pc.h * scale, alt: '' });
+}
+
+export function statBar(label, value, max = 100, opts = {}) {
+  return h('div', { class: 'stat-row' },
+    h('span', { class: 'k', text: label }),
+    bar(value, max, opts.cls || 'stat'),
+    h('b', { text: opts.text ?? String(value) }));
+}
+
+// 화면 위에 겹쳐 여는 창 (소지품·상점·코시라에·연마소). 길 위·장소 화면 상태를 그대로 둔 채 열고 닫는다.
+export function openModal(app, { title, testid = 'modal', cls = '', onClose } = {}) {
+  app.modal?.close();
+  const body = h('div', { class: 'modal-body' });
+  const sub = h('span', { class: 'modal-sub' });
+  const back = h('div', { class: 'modal-back' });
+  function close() {
+    back.remove();
+    if (app.modal === handle) app.modal = null;
+    onClose?.();
+    app.renderHud();
+  }
+  const box = h('div', { class: `panel modal ${cls}`, 'data-testid': testid },
+    h('div', { class: 'modal-head' }, h('h2', { text: title }), sub, h('span', { class: 'grow' }), button('닫기 (Esc)', close, { cls: 'small-btn center', testid: 'modal-close' })),
+    body);
+  back.append(box);
+  app.ui.append(back);
+  const handle = { body, box, close, setSub: (t) => { sub.textContent = t; } };
+  app.modal = handle;
+  return handle;
+}

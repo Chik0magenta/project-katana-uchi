@@ -2,8 +2,9 @@
 import { h, button } from '../dom.js';
 import { TitleView } from '../../render/views/titleView.js';
 import { createGame, makeRaw } from '../../core/state.js';
-import { depart, arriveAt } from '../../core/travel.js';
+import { depart, arriveAt, forceEvent } from '../../core/travel.js';
 import { ForgeSession } from '../../core/forge/session.js';
+import { mountKatana, equip } from '../../core/weapons.js';
 
 function sampleGame() {
   const s = createGame(12345);
@@ -35,6 +36,29 @@ function sampleSession(s, until) {
   return f;
 }
 
+// 샘플 도신 n자루 (사철 + 철광석, 담금질 시간을 조금씩 달리해 결과가 다르게)
+function sampleBlades(s, n) {
+  const kept = s.raw;
+  for (let i = 0; i < n; i++) {
+    // sampleSession은 0번(피철 후보)과 2번(심철 후보) 원료를 쓴다
+    s.raw = [makeRaw(s, 'satetsu', '사철 강변 · 2일차'), makeRaw(s, 'roadsand', '강둑 길 · 2일차'), makeRaw(s, 'ore', '철광 산지 · 3일차')];
+    const f = sampleSession(s, 'quench');
+    for (let t = 0; t < 100 + i * 25; t++) f.quench.tick(0.1);
+    f.doQuench();
+  }
+  s.raw = kept;
+}
+
+// 카타나를 쥔 도공 + 벤케이 일행
+function armedParty(s) {
+  s.money = 150;
+  s.companions.benkei = true;
+  sampleBlades(s, 2);
+  const w = mountKatana(s, s.blades[0].uid, 'fine').weapon;
+  equip(s, 'smith', w.uid);
+  return s;
+}
+
 export function mountDev(app) {
   app.stage.setView(new TitleView());
   const go = (fn) => () => { app.state = sampleGame(); fn(app.state); };
@@ -58,6 +82,10 @@ export function mountDev(app) {
         const o = f.doQuench();
         app.go('result', { record: o.record });
       }), { testid: 'dev-result' }),
+      button('장소 — 성하 마을 (도신 2·돈 150)', go((s) => { s.money = 150; sampleBlades(s, 2); arriveAt(s, 'castle'); app.go('location'); }), { testid: 'dev-castle' }),
+      button('소지품 — 도신·카타나·벤케이', go((s) => { armedParty(s); arriveAt(s, 'village'); app.go('location'); app.openInventory(); }), { testid: 'dev-inventory' }),
+      button('이동 중 — 떠돌이 행상인', go((s) => { arriveAt(s, 'inn'); depart(s, 'river'); forceEvent(s, 'merchant'); app.go('travel'); }), { testid: 'dev-peddler' }),
+      button('이동 중 — 산적 (벤케이·카타나)', go((s) => { armedParty(s); arriveAt(s, 'inn'); depart(s, 'castle'); forceEvent(s, 'bandit'); app.go('travel'); }), { testid: 'dev-bandit' }),
       button(`개발 수치 표시 ${app.devNumbers ? '끄기' : '켜기'} (F2)`, () => { app.toggleDevNumbers(); app.go('dev'); }, { testid: 'dev-numbers' }),
     ),
     h('div', { class: 'grow' }),

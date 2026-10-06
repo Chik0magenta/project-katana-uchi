@@ -163,6 +163,47 @@ export const BANDIT = [
   '..gg....gg...',
 ];
 
+// 도장 문하생 (흰 도복, 남색 하카마, 목검)
+export const PUPIL = [
+  '.....kk......',
+  '....kkkk.....',
+  '....ssss.....',
+  '....sksk.....',
+  '.....ss......',
+  '...wwwwww....',
+  '..wwmwwwwn...',
+  '..wwwmwwsn...',
+  '..wwwwww.n...',
+  '...bbbbbbn...',
+  '...bbbbbb....',
+  '..bbbbbbbb...',
+  '..bbbbbbbb...',
+  '..bbb..bbb...',
+  '..bb....bb...',
+  '..ss....ss...',
+  '.gg....gg....',
+];
+
+// 떠돌이 낭인 (삿갓, 해진 회색 옷, 허리의 칼)
+export const RONIN = [
+  '....llll.....',
+  '..lLLLLLLl...',
+  '.llllllllll..',
+  '....kssk.....',
+  '....ssss.....',
+  '.....ss......',
+  '...tTTTTt....',
+  '..tTTkTTTt...',
+  '..tTTTkTTs...',
+  '..tTTTTTxeeh.',
+  '...kkkkkk....',
+  '...tTTTTt....',
+  '...tTTTTt....',
+  '...tt..tt....',
+  '...ss..ss....',
+  '..gg..gg.....',
+];
+
 export const WOLF = [
   '...............',
   '.TT............',
@@ -257,4 +298,7 @@ export const HAMMER = [
 export const ART = {
   traveler: TRAVELER, merchant: MERCHANT, bandit: BANDIT, wolf: WOLF,
   charcoal: SACK, berries: BERRIES, sand: SAND, rockfall: ROCKS, benkei: BENKEI,
+  pupil: PUPIL, ronin: RONIN,
 };
+// 사람 그림은 오른쪽을 본다 (늑대만 왼쪽)
+export const FACES_LEFT = new Set(['wolf']);

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { P } from '../palette.js';
 import { drawSky, drawFar, drawMid, drawGround } from '../art/backgrounds.js';
-import { SMITH_FRAMES, SMITH_SIT, BENKEI, CAMPFIRE, ART } from '../art/sprites.js';
+import { SMITH_FRAMES, SMITH_SIT, BENKEI, CAMPFIRE, ART, FACES_LEFT } from '../art/sprites.js';
 import { gridTex, setTexture, Tweens, glowTexture, dispose } from './common.js';
 import { placeFoot } from '../stage.js';
 
@@ -110,7 +110,7 @@ export class TravelView {
     if (!art || !ART[art]) return;
     const grid = ART[art];
     // 사람은 오른쪽, 늑대는 왼쪽을 보도록 그려져 있다 → 도공을 마주 보게 뒤집는다
-    const pc = gridTex(grid, ['traveler', 'merchant', 'bandit', 'benkei'].includes(art) ? this.dir > 0 : this.dir < 0);
+    const pc = gridTex(grid, FACES_LEFT.has(art) ? this.dir < 0 : this.dir > 0);
     const ax = SMITH_X + 56 * this.dir;
     const props = ['charcoal', 'berries', 'sand', 'rockfall'];
     const footY = props.includes(art) ? ROAD_Y + 2 : ROAD_Y;

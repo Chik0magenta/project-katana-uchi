@@ -54,6 +54,24 @@ function cloud(pc, x, y, w, c = P.white) {
   pc.ellipse(x + w / 2, y + 1, w / 2, 2, c);
 }
 
+// 천수각: 흰 벽과 어두운 기와 지붕이 겹친 성 (cx: 가운데, base: 돌담 위 y)
+export function castleKeep(pc, cx, base, sc = 1) {
+  const tiers = [[34, 9], [26, 8], [18, 7]];
+  let y = base;
+  for (const [w0, h0] of tiers) {
+    const w = Math.round(w0 * sc); const hh = Math.round(h0 * sc);
+    pc.rect(cx - w / 2, y - hh, w, hh, P.white);
+    for (let x = cx - w / 2 + 3; x < cx + w / 2 - 2; x += 5) pc.rect(x, y - hh + 2, 2, 2, P.ink);
+    const ry = y - hh;
+    pc.poly([[cx - w / 2 - 4, ry + 1], [cx + w / 2 + 4, ry + 1], [cx + w / 2 - 1, ry - 3], [cx - w / 2 + 1, ry - 3]], P.slate);
+    pc.hline(cx - w / 2 - 4, ry + 1, w + 8, P.ink);
+    pc.px(cx - w / 2 - 5, ry, P.slate); pc.px(cx + w / 2 + 4, ry, P.slate);
+    y = ry - 3;
+  }
+  pc.poly([[cx - 6, y + 1], [cx + 6, y + 1], [cx, y - 4]], P.slate);
+  pc.px(cx - 4, y - 3, P.ink); pc.px(cx + 4, y - 3, P.ink);
+}
+
 // ── 지도 (216x169) ────────────────────────────
 export const MAP_W = 216;
 export const MAP_H = 169;
@@ -135,6 +153,11 @@ export function drawMap() {
   pc.hline(n.mountain.x - 4, n.mountain.y + 1, 8, P.woodL);
   pc.vline(n.mountain.x - 4, n.mountain.y + 1, 7, P.woodL); pc.vline(n.mountain.x + 3, n.mountain.y + 1, 7, P.woodL);
   pc.speckle(n.mountain.x - 9, n.mountain.y + 5, 18, 6, P.orange, 0.08);
+  // 성하 마을: 작은 성과 집들
+  house(pc, n.castle.x - 16, n.castle.y + 2, 8, 5, P.slate, P.paperD, { door: false });
+  house(pc, n.castle.x + 8, n.castle.y + 3, 9, 5, P.woodD, P.paperD, { door: false });
+  pc.poly([[n.castle.x - 7, n.castle.y + 4], [n.castle.x + 7, n.castle.y + 4], [n.castle.x + 5, n.castle.y], [n.castle.x - 5, n.castle.y]], P.stone);
+  castleKeep(pc, n.castle.x, n.castle.y, 0.32);
 
   // 테두리
   pc.rect(0, 0, MAP_W, 1, P.woodD); pc.rect(0, MAP_H - 1, MAP_W, 1, P.woodD);
@@ -304,6 +327,35 @@ export function drawLocation(id) {
     pc.rect(208, 86, 3, 12, P.woodD); pc.rect(92, 80, 3, 14, P.woodD);
     pc.rect(240, 88, 18, 8, P.woodL); pc.rect(240, 88, 18, 2, P.wood); // 바구니
     pc.speckle(242, 90, 14, 5, P.ink, 0.6);
+  } else if (id === 'castle') {
+    sky([P.skyL, P.skyL, P.paper, P.paperD]);
+    cloud(pc, 60, 12, 10); cloud(pc, 150, 20, 7);
+    mountain(pc, 70, 58, 170, 22, P.stoneL, P.stone);
+    // 성이 선 언덕과 돌담
+    pc.ellipse(256, 60, 70, 14, P.grassD); pc.dither(186, 46, 140, 14, P.grass, 0.3);
+    pc.poly([[222, 54], [292, 54], [284, 40], [230, 40]], P.stone); pc.speckle(222, 40, 70, 14, P.slate, 0.25);
+    for (let x = 226; x < 290; x += 6) pc.vline(x, 41, 13, P.stoneL);
+    castleKeep(pc, 257, 40, 1);
+    pc.rect(0, 56, 320, 48, P.grass); pc.dither(0, 56, 320, 48, P.grassL, 0.12);
+    // 상가 거리
+    pc.rect(0, 80, 320, 12, P.earth); pc.speckle(0, 80, 320, 12, P.earthL, 0.08); pc.dither(0, 79, 320, 2, P.earth, 0.5);
+    house(pc, 8, 62, 40, 18, P.slate, P.paperD, { window: P.woodD });
+    house(pc, 56, 60, 52, 20, P.ink, P.paper, { door: false });          // 도검상
+    pc.rect(60, 68, 44, 6, P.indigo); for (let x = 62; x < 104; x += 7) pc.vline(x, 68, 6, P.indigoL); // 노렌
+    pc.rect(74, 52, 16, 6, P.woodD); pc.rect(75, 53, 14, 4, P.paperD); pc.rect(79, 54, 6, 2, P.ink); // 간판
+    // 칼 진열대
+    pc.rect(60, 76, 2, 6, P.woodD); pc.rect(102, 76, 2, 6, P.woodD); pc.hline(60, 76, 44, P.woodL); pc.hline(60, 79, 44, P.woodL);
+    for (const yy of [75, 78]) { pc.line(64, yy, 99, yy - 1, P.ink); pc.line(64, yy - 1, 70, yy - 1, P.red); }
+    house(pc, 120, 62, 36, 18, P.slate, P.paperD, { window: P.woodD });   // 칼집장이
+    pc.rect(126, 74, 22, 2, P.ink); pc.rect(126, 72, 2, 2, P.ink);
+    // 연마소: 숫돌 받침
+    pc.rect(166, 74, 20, 4, P.woodL); pc.rect(168, 72, 8, 2, P.stoneL); pc.rect(178, 72, 6, 2, P.stone);
+    pc.rect(167, 78, 2, 4, P.woodD); pc.rect(183, 78, 2, 4, P.woodD);
+    pc.ellipse(196, 76, 5, 3, P.waterD); pc.ellipse(196, 75, 4, 2, P.water); // 물통
+    // 등롱 기둥
+    for (const x of [112, 160]) { pc.rect(x, 64, 2, 16, P.woodD); pc.rect(x - 2, 60, 6, 5, P.redL); pc.hline(x - 2, 60, 6, P.ink); }
+    pc.rect(0, 92, 320, 12, P.grassD); pc.dither(0, 90, 320, 2, P.grassD, 0.5);
+    for (let x = 206; x < 320; x += 36) cedar(pc, x + 8, 92, 12);
   } else if (id === 'mountain') {
     sky([P.skyL, P.skyL, P.paper, P.mist]);
     mountain(pc, 160, 70, 360, 64, P.stone, P.slate, P.white);
@@ -471,25 +523,110 @@ export function drawBladeShape(pc, progress, opts = {}) {
       pc.px(gx, yBot - 1, P.white);
     }
   }
-  // 자루(나카고): 하바키 없이 도신의 휨을 이어 위로 올라가며 끝으로 갈수록 가늘어진다
   const g = geom(0.999);
-  const tangLen = Math.round(28 * thickScale);
   const slope = (Math.PI * curve * g.t) / len;   // u=1에서 휨 곡선의 기울기(px/px)
-  const th0 = Math.max(3, Math.round(g.thick * 0.6));
-  const holeK = Math.round(tangLen * 0.55);
-  for (let k = 0; k < tangLen; k++) {
-    const gx = x0 + len + k;
-    const tt = g.top - Math.round(k * slope);
-    const th = Math.max(2, Math.round(th0 * (1 - 0.35 * (k / tangLen))));
-    pc.vline(gx, tt, th, P.steelD);
-    pc.px(gx, tt + th - 1, P.ink);
-    if (k === holeK || k === holeK + 1) pc.px(gx, tt + Math.floor(th / 2), P.ink);
+  if (opts.mount) {
+    // 카타나: 자루 대신 코등이와 감은 손잡이를 그린다
+    drawMount(pc, { x: x0 + len, top: g.top, thick: g.thick, slope, scale: thickScale }, opts.mount);
+  } else {
+    // 자루(나카고): 하바키 없이 도신의 휨을 이어 위로 올라가며 끝으로 갈수록 가늘어진다
+    const tangLen = Math.round(28 * thickScale);
+    const th0 = Math.max(3, Math.round(g.thick * 0.6));
+    const holeK = Math.round(tangLen * 0.55);
+    for (let k = 0; k < tangLen; k++) {
+      const gx = x0 + len + k;
+      const tt = g.top - Math.round(k * slope);
+      const th = Math.max(2, Math.round(th0 * (1 - 0.35 * (k / tangLen))));
+      pc.vline(gx, tt, th, P.steelD);
+      pc.px(gx, tt + th - 1, P.ink);
+      if (k === holeK || k === holeK + 1) pc.px(gx, tt + Math.floor(th / 2), P.ink);
+    }
   }
   if (highlight >= 0) {
     const sx = x0 + Math.round(highlight * segLen);
     pc.rect(sx, Math.max(0, y0 - 3), Math.ceil(segLen) - 1, 1, P.yellow);
     pc.rect(sx, y0 + maxT + 2, Math.ceil(segLen) - 1, 1, P.yellow);
   }
+}
+
+// 코시라에를 맞춘 손잡이 쪽: 코등이(쓰바) + 끈을 감은 손잡이(쓰카) + 끝 마개(가시라).
+// plain: 무명 끈(갈색)과 쇠 코등이 / fine: 비단 끈(남색)과 테두리를 낸 코등이
+export const MOUNT_LEN = 34;   // thickScale 1 기준 손잡이 쪽 길이(px)
+function drawMount(pc, m, kosh) {
+  const fine = kosh === 'fine';
+  const wrap = fine ? P.indigo : P.wood;
+  const wrapL = fine ? P.indigoL : P.woodL;
+  const skin = fine ? P.white : P.paperD;
+  const th = Math.max(5, Math.round(m.thick * 0.8 + 2 * m.scale));
+  const cy0 = m.top + m.thick / 2;
+  // 코등이: 세로로 긴 판
+  const tH = Math.round(m.thick + 6 * m.scale);
+  const tW = Math.max(2, Math.round(2 * m.scale));
+  const ty = Math.round(cy0 - tH / 2);
+  pc.rect(m.x, ty + 1, tW, tH - 2, P.steelD);
+  pc.vline(m.x, ty + 1, tH - 2, fine ? P.steelL : P.steel);
+  pc.px(m.x + tW - 1, ty, P.steelD); pc.px(m.x + tW - 1, ty + tH - 1, P.steelD);
+  // 손잡이: 휨을 이어 위로, 마름모 무늬
+  const L = Math.round((MOUNT_LEN - 6) * m.scale);
+  for (let k = 0; k < L; k++) {
+    const gx = m.x + tW + k;
+    const cy = cy0 - k * m.slope;
+    const top = Math.round(cy - th / 2);
+    pc.vline(gx, top, th, wrap);
+    pc.px(gx, top, P.ink); pc.px(gx, top + th - 1, P.ink);
+    const w = [0, 1, 2, 2, 1, 0][k % 6] * Math.max(1, Math.round(m.scale * 0.8));
+    if (w > 0 && k > 1 && k < L - 2) pc.rect(gx, Math.round(cy) - w, 1, w * 2, skin);
+    else if (k % 6 === 0) pc.vline(gx, top + 1, th - 2, wrapL);
+  }
+  // 끝 마개
+  const ex = m.x + tW + L;
+  const ecy = cy0 - L * m.slope;
+  pc.rect(ex, Math.round(ecy - th / 2), Math.max(2, Math.round(2 * m.scale)), th, P.steelD);
+}
+
+// 도신 기록을 그대로 그린다 (결과 화면·소지품·코시라에 그림이 함께 쓴다). opts.mount: 코시라에 id
+export function drawRecordBlade(pc, r, opts = {}) {
+  const progress = r.shaping.progress.map((p) => p / 100);
+  const warp = r.soundness.label === '휨';
+  const hard = r.hardening.value / 100;
+  drawBladeShape(pc, progress, {
+    x0: 4, y0: 5, len: 250, thickScale: 1.6, base: P.steel, edge: P.steelH, spine: P.steelD, curve: warp ? 7 : 3,
+    hamon: hard > 0.3 ? { color: r.hardening.localUneven ? P.stoneL : P.mist, wave: r.hardening.localUneven ? 2.5 : 1.2 } : null,
+    ...opts,
+  });
+  if (r.soundness.label === '균열' || r.soundness.label === '파단') {
+    const sc = (opts.len || 250) / 250;
+    const y0 = (opts.y0 ?? 5) + Math.round(15 * (opts.thickScale ?? 1.6) / 1.6);
+    for (const cx of [70, 140, 190]) {
+      let y = y0; let x = Math.round((opts.x0 ?? 4) + (cx - 4) * sc);
+      for (let k = 0; k < 6; k++) { pc.px(x, y, P.ink); y -= 1; x += k % 2 ? 1 : -1; }
+    }
+  }
+}
+
+// 소지품·코시라에 화면용 작은 그림 (DOM <img>로 쓴다)
+export function bladeThumb(r, mount = null) {
+  const pc = new PixelCanvas(150 + 4 + (mount ? MOUNT_LEN : 26), 22, 5);
+  drawRecordBlade(pc, r, { x0: 2, y0: 3, len: 150, thickScale: 0.95, mount });
+  return pc;
+}
+
+// ── 도장 (전투 화면 배경, 320x180) ─────────────────
+export function drawDojo() {
+  const pc = new PixelCanvas(320, 180, 29);
+  pc.fill(P.wood);
+  for (let x = 0; x < 320; x += 16) { pc.vline(x, 0, 104, P.woodD); pc.dither(x + 1, 0, 15, 104, P.woodL, 0.06); }
+  pc.rect(0, 20, 320, 3, P.woodD); pc.rect(0, 70, 320, 3, P.woodD);
+  // 족자와 이름판
+  pc.rect(146, 26, 28, 40, P.paper); pc.rect(146, 26, 28, 2, P.woodD); pc.rect(146, 64, 28, 2, P.woodD);
+  pc.rect(158, 32, 4, 26, P.ink); pc.rect(154, 40, 12, 3, P.ink);
+  for (let i = 0; i < 8; i++) { pc.rect(20 + i * 14, 30, 10, 24, P.paperD); pc.rect(22 + i * 14, 34, 6, 2, P.ink); pc.rect(24 + i * 14, 38, 2, 12, P.ink); }
+  // 목검 걸이
+  pc.rect(220, 34, 70, 3, P.woodD); for (let i = 0; i < 5; i++) pc.line(226 + i * 13, 30, 232 + i * 13, 58, P.woodL);
+  // 마루
+  pc.rect(0, 96, 320, 84, P.woodL); for (let y = 96; y < 180; y += 6) pc.hline(0, y, 320, P.wood);
+  pc.dither(0, 96, 320, 84, P.straw, 0.05); pc.rect(0, 94, 320, 2, P.woodD);
+  return pc;
 }
 
 // ── 결과 화면 배경 ─────────────────────────────

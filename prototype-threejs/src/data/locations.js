@@ -1,5 +1,6 @@
 // 장소별 활동. 활동은 길 위 사건을 일으키지 않는다.
-// cost: { days, food, fatigue } / gives: { raw, charcoal, food(최대치까지), fatigueTo, hint }
+// cost: { days, food, fatigue, money } / gives: { raw, charcoal, food(최대치까지), fatigueTo, hint, battle }
+// special: 화면이 따로 여는 활동 (workshop 공방 / shop 상점 / koshirae 코시라에 / polish 연마소)
 // limit: 한 번 방문해 할 수 있는 횟수 (다시 들어오면 초기화)
 // Godot 이식: data/locations.json
 
@@ -11,6 +12,7 @@ export const LOCATIONS = {
       { id: 'workshop', label: '공방에 들어가기', desc: '모은 재료로 칼을 만든다.', special: 'workshop' },
       { id: 'supply', label: '보급하기', desc: '식량을 가득 채운다. (마을 창고, 무료)', gives: { foodFill: true } },
       { id: 'rest', label: '집에서 쉬기 (1일)', desc: '하루를 쉬어 피로를 모두 푼다.', cost: { days: 1 }, gives: { fatigueTo: 0 } },
+      { id: 'shop', label: '마을 상점', desc: '숯·원료 사기, 원료·도신 팔기', special: 'shop' },
     ],
   },
   inn: {
@@ -44,6 +46,17 @@ export const LOCATIONS = {
     activities: [
       { id: 'ore', label: '철광석 캐기 (1일)', desc: '산 철광석 +1 (탄소 적음 · 속심용)', cost: { days: 1, food: 1, fatigue: 1 }, gives: { raw: 'ore' }, limit: 2 },
       { id: 'camp_here', label: '근처에서 야영 (1일)', desc: '식량 -1, 피로 -4', cost: { days: 1, food: 1 }, gives: { fatigue: -4 } },
+    ],
+  },
+  castle: {
+    scene: 'castle',
+    intro: '성 아래로 상가가 늘어선 마을. 칼집장이와 연마사, 도검상이 모여 산다.',
+    activities: [
+      { id: 'shop', label: '도검상', desc: '도신·카타나를 제값에 판다', special: 'shop' },
+      { id: 'koshirae', label: '코시라에 맞추기', desc: '도신을 카타나로 만든다', special: 'koshirae' },
+      { id: 'polish', label: '연마소', desc: '날 세우기 · 이 빠짐·휨 고치기', special: 'polish' },
+      { id: 'inn_stay', label: '여관에서 묵기 (1일 · 8문)', desc: '피로를 모두 푼다', cost: { days: 1, money: 8 }, gives: { fatigueTo: 0 } },
+      { id: 'dojo', label: '도장 대련', desc: '문하생 둘과 겨룬다 · 이기면 12문', gives: { battle: 'dojo' }, limit: 1 },
     ],
   },
 };

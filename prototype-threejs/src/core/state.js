@@ -16,7 +16,12 @@ export function createGame(seed = Date.now() % 1000000) {
     food: s.food,
     fatigue: s.fatigue,
     charcoal: s.charcoal,       // 좋은 숯
+    money: s.money,             // 돈 (문)
     raw: [],                    // 원료 [{uid, kind, name, carbon, uniformity, impurity, origin, tired}]
+    blades: [],                 // 가진 도신 [{uid, no}] — no는 results 기록 번호
+    weapons: [],                // 가진 카타나 (core/weapons.js 참고)
+    equip: {},                  // { smith: 카타나 uid, benkei: 카타나 uid } — 없으면 기본 무기
+    lastBattle: null,           // 마지막 전투 기록 (전투 화면이 재생한다)
     location: MAP.base,         // 장소에 있을 때 노드 id, 길 위면 null
     journey: null,              // travel.js 참고
     visit: { node: MAP.base, counts: {} },
@@ -29,6 +34,16 @@ export function createGame(seed = Date.now() % 1000000) {
     nextUid: 1,
     collapses: 0,
   };
+}
+
+// 예전 저장(v0.1)을 불러올 때 v0.2에서 늘어난 항목을 채운다.
+export function migrateState(state) {
+  if (state.money === undefined) state.money = BALANCE.start.money;
+  if (!state.blades) state.blades = state.results.map((r) => ({ uid: state.nextUid++, no: r.no }));
+  if (!state.weapons) state.weapons = [];
+  if (!state.equip) state.equip = {};
+  if (state.lastBattle === undefined) state.lastBattle = null;
+  return state;
 }
 
 // 상태 안에 저장된 시드로 난수를 쓰고 다시 저장한다 (저장/불러오기 시 재현 가능).
@@ -50,6 +65,7 @@ export function clampStats(state) {
   state.food = Math.max(0, Math.min(BALANCE.food.max, state.food));
   state.fatigue = Math.max(0, Math.min(BALANCE.fatigue.max, state.fatigue));
   state.charcoal = Math.max(0, state.charcoal);
+  state.money = Math.max(0, Math.round(state.money));
 }
 
 // 하루치 식량을 먹는다. 모자라면 굶주려 피로가 더 오른다.
@@ -61,9 +77,10 @@ export function eat(state, amount) {
   return { starving: true };
 }
 
-export function makeRaw(state, kind, originText) {
+// opts.bought: 산 물건은 지친 채 고른 것이 아니므로 불순도 가산이 없다.
+export function makeRaw(state, kind, originText, opts = {}) {
   const m = MATERIALS[kind];
-  const tired = isTired(state);
+  const tired = !opts.bought && isTired(state);
   return withRng(state, (rng) => {
     const raw = {
       uid: state.nextUid++,
@@ -94,19 +111,21 @@ export function appraise(stat, value) {
 }
 
 export function snapshotStats(state) {
-  return { food: state.food, fatigue: state.fatigue, charcoal: state.charcoal, raw: state.raw.length, day: state.day };
+  return { food: state.food, fatigue: state.fatigue, charcoal: state.charcoal, raw: state.raw.length, day: state.day, money: state.money };
 }
 
 // 전후 상태를 비교해 "식량 -1 · 피로 +2" 같은 변화 목록을 만든다.
 export function diffStats(before, after) {
-  const names = { day: '일차', food: '식량', fatigue: '피로', charcoal: '숯', raw: '원료' };
+  const names = { day: '일차', food: '식량', fatigue: '피로', charcoal: '숯', raw: '원료', money: '돈' };
   const out = [];
-  for (const k of ['food', 'fatigue', 'charcoal', 'raw']) {
+  for (const k of ['money', 'food', 'fatigue', 'charcoal', 'raw']) {
     const d = after[k] - before[k];
     if (d !== 0) out.push({ key: k, label: names[k], delta: d });
   }
   return out;
 }
+
+export function recordOf(state, no) { return state.results.find((r) => r.no === no) || null; }
 
 export const round2 = (v) => Math.round(v * 100) / 100;
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));

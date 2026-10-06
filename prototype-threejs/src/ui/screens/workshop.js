@@ -55,7 +55,7 @@ export function mountWorkshop(app, params = {}) {
   function renderSelect() {
     panel.className = 'panel ws-panel tall';
     const cands = session.candidates();
-    const list = h('div', { class: 'mat-list' });
+    const list = h('div', { class: 'mat-list scroll-ok' });
     for (const c of cands) {
       const picked = session.picked.filter((u) => u === c.uid).length;
       const card = h('div', { class: `mat ${picked ? 'picked' : ''}`, 'data-testid': `mat-${c.uid}`, onClick: () => { const r = session.togglePick(c.uid); if (!r.ok && r.reason) app.toast(r.reason); render(); } },

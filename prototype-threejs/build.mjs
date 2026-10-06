@@ -17,7 +17,7 @@ function page(js) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KATANA-UCHI v0.1</title>
+<title>KATANA-UCHI v0.2</title>
 <style>${css}</style>
 </head>
 <body>

@@ -4,6 +4,8 @@ import { TravelView } from '../../render/views/travelView.js';
 import {
   dayActions, takeDayAction, resolveEvent, enterArrived, collapse, journeyView, edgeOf,
 } from '../../core/travel.js';
+import { previewBattle } from '../../core/battle.js';
+import { openShop } from './shop.js';
 
 const ACTION_NAMES = { depart: '출발 · 하루 이동', continue: '하루 이동', reverse: '방향을 바꿔 하루 이동', camp: '노숙' };
 
@@ -67,8 +69,22 @@ export function mountTravel(app, params) {
 
     if (j.phase === 'event') {
       right.append(h('div', { class: 'muted small', text: '사건에 어떻게 대응할까?' }));
-      j.event.choices.forEach((c) => right.append(button(c.label, () => choose(c.index), { disabled: !c.enabled, why: c.why, testid: `choice-${c.index}` })));
-    } else if (j.phase === 'choose') {
+      // 고를 것이 넷 이상이면 두 줄로 놓아 패널 안에 다 보이게 한다 (싸움 선택지는 한 줄을 다 쓴다)
+      if (j.event.choices.length >= 4) right.classList.add('grid2');
+      j.event.choices.forEach((c) => {
+        const b = button(c.label, () => choose(c.index), { cls: c.battle ? 'wide fight' : '', disabled: !c.enabled, why: c.why, testid: `choice-${c.index}` });
+        if (c.battle) {
+          // 싸우기 전에 양쪽 전투력과 승산을 보여 준다 (소지품에서 칼을 바꾸면 바로 반영)
+          const p = previewBattle(s, c.battle);
+          b.append(h('span', { class: `small ${p.odds === '우세' ? 'good-text' : p.odds === '열세' ? 'bad-text' : 'warn'}`, 'data-testid': `odds-${c.index}`, text: `우리 ${p.allyPower} : 상대 ${p.enemyPower} · 승산 ${p.odds} (${Math.round(p.winRate * 100)}%)` }));
+        }
+        right.append(b);
+      });
+    }
+    if (j.event.shop && j.event.resolved && (j.phase === 'choose' || j.phase === 'arrive')) {
+      left.append(button('행상인과 거래하기 (시간 들지 않음)', () => openShop(app, j.event.shop, { onChange: render }), { cls: 'small-btn inline', testid: 'open-peddler' }));
+    }
+    if (j.phase === 'choose') {
       right.append(h('div', { class: 'muted small', text: '다음 행동을 고르세요. 고르기 전에는 시간이 흐르지 않습니다.' }));
       for (const a of dayActions(s)) {
         const desc = a.id === 'camp' ? ' — 제자리에서 하루, 피로 회복' : a.id === 'continue' ? ` — ${v.target.name} 쪽으로 하루` : ` — ${(j.heading === 'to' ? v.from : v.to).name} 쪽으로 하루`;
@@ -117,6 +133,7 @@ export function mountTravel(app, params) {
     const r = resolveEvent(s, i);
     if (!r.ok) { app.toast(r.reason); return; }
     app.save();
+    if (s.journey?.event?.battle && !s.journey.event.battleShown) { app.go('battle', { back: 'travel' }); return; }
     render();
   }
 

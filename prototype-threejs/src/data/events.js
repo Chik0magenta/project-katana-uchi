@@ -1,7 +1,8 @@
 // 사건 묶음. kind: travel(이동한 날) / camp(노숙한 날)
 // terrains: 이 사건이 나올 수 있는 길의 지형 ('any' = 모든 지형)
 // choices가 비어 있으면 대응 없이 바로 행동 선택으로 넘어간다('아무 일 없음' 등).
-// requires: { food, charcoal, raw, companion } / effects: { food, fatigue, charcoal, addRaw, loseRaw, companion, flag, hint }
+// requires: { food, charcoal, raw, companion, money }
+// effects: { food, fatigue, charcoal, money, addRaw, loseRaw, companion, flag, hint, battle(전투 상대 id), trade(상점 id) }
 // art: 사건 삽화 키 (render/eventArt.js) / weather: 이동 화면 날씨 연출
 // Godot 이식: data/events.json
 
@@ -60,13 +61,12 @@ export const EVENTS = [
     ],
   },
   {
-    id: 'merchant', kind: 'travel', terrains: ['plain', 'river', 'forest'], weight: 7, art: 'merchant',
-    title: '떠돌이 상인',
-    text: '등짐 가득 물건을 진 상인이 물물교환을 청한다.',
+    id: 'merchant', kind: 'travel', terrains: ['plain', 'river', 'forest'], weight: 8, art: 'merchant',
+    title: '떠돌이 행상인',
+    text: '등짐 가득 물건을 진 행상인이 보따리를 내려놓는다. "구경하고 가시오. 쓸 만한 물건은 사기도 하오."',
     choices: [
-      { label: '숯 1 → 식량 3', requires: { charcoal: 1 }, effects: { charcoal: -1, food: 3 }, result: '숯 자루를 건네고 말린 밥을 받았다.' },
-      { label: '식량 2 → 숯 1', requires: { food: 2 }, effects: { food: -2, charcoal: 1 }, result: '상인이 좋은 숯이라며 자루를 내밀었다.' },
-      { label: '지나간다', effects: {}, result: '다음에 보자며 상인이 손을 흔들었다.' },
+      { label: '보따리를 구경한다 (거래)', effects: { trade: 'peddler' }, result: '행상인이 보따리를 활짝 풀었다. 오늘 하루는 이 자리에서 장사한다고 한다.' },
+      { label: '지나간다', effects: {}, result: '다음에 보자며 행상인이 손을 흔들었다.' },
     ],
   },
 
@@ -97,10 +97,29 @@ export const EVENTS = [
     title: '산적',
     text: '칼을 찬 사내 둘이 길을 막는다. "가진 걸 내놓고 가라."',
     choices: [
-      { label: '벤케이가 앞으로 나선다', requires: { companion: 'benkei' }, effects: {}, result: '벤케이가 나기나타를 한 번 휘두르자 사내들이 달아났다.' },
+      { label: '맞서 싸운다', effects: { battle: 'bandits' }, result: '' },
+      { label: '돈을 내준다 (돈 -15)', requires: { money: 15 }, effects: { money: -15 }, result: '엽전 꾸러미를 던져 주었다. 사내들이 길을 비켰다.' },
       { label: '식량을 내준다 (식량 -2)', requires: { food: 2 }, effects: { food: -2 }, result: '보따리를 빼앗겼지만 다친 데는 없다.' },
-      { label: '숯 자루를 내준다 (숯 -1)', requires: { charcoal: 1 }, effects: { charcoal: -1 }, result: '"숯이라니." 투덜거리며 사내들이 사라졌다.' },
-      { label: '짐을 끌어안고 달아난다 (피로 +4)', effects: { fatigue: 4 }, result: '숨이 턱에 닿도록 뛰어 겨우 따돌렸다.' },
+      { label: '달아난다 (피로 +4)', effects: { fatigue: 4 }, result: '숨이 턱에 닿도록 뛰어 겨우 따돌렸다.' },
+    ],
+  },
+  {
+    id: 'wolves', kind: 'travel', terrains: ['forest', 'mountain'], weight: 4, minDay: 3, art: 'wolf',
+    title: '늑대 무리',
+    text: '덤불 사이로 누런 눈 여럿이 번득인다. 늑대 무리가 길을 에워쌌다.',
+    choices: [
+      { label: '맞서 싸운다', effects: { battle: 'wolves' }, result: '' },
+      { label: '식량을 던져 주고 물러난다 (식량 -2)', requires: { food: 2 }, effects: { food: -2 }, result: '늑대들이 고기에 달려든 사이 자리를 떴다.' },
+      { label: '나무 위로 피해 기다린다 (피로 +3)', effects: { fatigue: 3 }, result: '해 질 녘이 되어서야 늑대들이 물러갔다.' },
+    ],
+  },
+  {
+    id: 'ronin', kind: 'travel', terrains: ['plain', 'river', 'mountain'], weight: 4, minDay: 4, art: 'ronin',
+    title: '떠돌이 낭인',
+    text: '삿갓을 깊이 눌러쓴 낭인이 길가 돌에 앉아 있다. "칼을 만든다고? 그렇다면 한 번 겨뤄 보세."',
+    choices: [
+      { label: '겨룬다', effects: { battle: 'ronin' }, result: '' },
+      { label: '정중히 사양한다', effects: {}, result: '"아쉽군." 낭인이 다시 삿갓을 눌러썼다.' },
     ],
   },
   {
@@ -166,4 +185,7 @@ export const RUMORS = [
   '"식은 쇠를 두드리면 눈에 안 보이는 금이 간다더라."',
   '"숯가마 숲의 숯은 불이 좋아 제철할 때 쇠를 깨끗하게 해 준다지."',
   '"너무 오래 접으면 쇠가 순해지기는 하는데, 탄소도 같이 빠져."',
+  '"성하 마을 도검상은 물건만 좋으면 도신 값을 후하게 쳐 준다더군."',
+  '"날만 단단하고 속심이 무르지 않으면, 칼이 부딪칠 때 이가 빠지거나 부러진다지."',
+  '"잘 굳고 탄소가 넉넉한 날은 오래 써도 쉽게 무뎌지지 않는다네."',
 ];
